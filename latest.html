@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TruthCheck AI — Latest News</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: #fffbea;
+      font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto;
+    }
+    .content {
+      min-height: 80vh;
+      padding-top: 28px;
+    }
+    .logo-img {
+      height: 45px;
+      margin-right: 8px;
+    }
+    .card {
+      border-radius: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ✅ HEADER -->
+  <nav class="navbar navbar-expand-lg py-2" style="background:#ffcc00;">
+    <div class="container">
+
+      <!-- Logo + Brand -->
+      <a class="navbar-brand d-flex align-items-center" href="/">
+        <img src="/static/images/logo.png" class="logo-img">
+        <span class="fw-bold">TruthCheck AI</span>
+      </a>
+
+      <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Navbar -->
+      <div id="navMenu" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link fw-bold" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link fw-bold" href="/latest">Latest</a></li>
+          <li class="nav-item"><a class="nav-link fw-bold" href="/trending">Trending</a></li>
+          <li class="nav-item"><a class="nav-link fw-bold" href="/factchecks">FactCheck</a></li>
+        </ul>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- ✅ MAIN CONTENT -->
+  <main class="container content">
+
+    <h3 class="text-center fw-bold mb-4">🆕 Latest News</h3>
+
+    <div class="row">
+      {% for item in news %}
+      <div class="col-md-4 mb-3">
+
+        <div class="card shadow-sm">
+          <img src="{{ item.image }}" class="card-img-top" style="height:200px;object-fit:cover">
+
+          <div class="card-body">
+            <h6 class="fw-bold">{{ item.title }}</h6>
+            <p class="small text-muted">{{ item.source }}</p>
+
+            <a class="btn btn-warning btn-sm fw-bold" href="{{ item.url }}" target="_blank">
+              Read Article
+            </a>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+  </main>
+
+
+  <!-- ✅ FOOTER -->
+  <footer class="py-4 text-center" style="background:#ffcc00;">
+
+    <h4 class="fw-bold">Developed by Team 08</h4>
+
+    <div class="team-members d-flex justify-content-center gap-3 flex-wrap">
+      <div class="member fw-semibold">GURUKRISHNA H</div>
+      <div class="member fw-semibold">DISHAN RAJ</div>
+      <div class="member fw-semibold">PRASAD</div>
+      <div class="member fw-semibold">DHANYATH</div>
+    </div>
+
+    <p class="credits mt-2 mb-0 fw-bold">
+      | Made by Batch–08 | © 2025 All rights reserved.
+    </p>
+
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
