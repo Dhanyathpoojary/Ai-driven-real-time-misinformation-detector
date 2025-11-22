@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TruthCheck AI — Fact Checks</title>
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --snopes-yellow: #f5c505;
+      --snopes-dark: #212121;
+      --snopes-light: #ffffff;
+    }
+
+    body {
+      background: var(--snopes-light);
+      font-family: "Poppins", system-ui, sans-serif;
+      color: var(--snopes-dark);
+    }
+
+    nav,
+    footer {
+      background: var(--snopes-yellow);
+      color: var(--snopes-dark);
+    }
+
+    .logo-img {
+      height: 42px;
+      margin-right: 8px;
+    }
+
+    .navbar-brand span {
+      font-weight: 700;
+      font-size: 1.3rem;
+    }
+
+    .content {
+      min-height: 80vh;
+      padding: 30px 0;
+    }
+
+    .news-card {
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .news-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .badge-status {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.4em 0.6em;
+    }
+
+    .confidence-bar {
+      height: 6px;
+      border-radius: 5px;
+      background: #eee;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.8s ease-in-out;
+    }
+
+    footer {
+      padding: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .timestamp {
+      font-size: 0.8rem;
+      color: #555;
+    }
+
+    .nav-link.active {
+      color: var(--snopes-dark);
+      text-decoration: underline;
+    }
+
+    .input-group .form-control {
+      border-radius: 0.5rem 0 0 0.5rem;
+    }
+
+    .input-group .btn {
+      border-radius: 0 0.5rem 0.5rem 0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ✅ HEADER -->
+  <nav class="navbar navbar-expand-lg py-2">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="/">
+        <img src="/static/images/logo.png" class="logo-img" />
+        <span>TruthCheck AI</span>
+      </a>
+
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link fw-bold" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold" href="/latest">Latest</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold" href="/trending">Trending</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold active" href="/factchecks">Fact Checks</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold" href="/analytics">Analytics</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ✅ MAIN CONTENT -->
+  <div class="container content">
+    <h2 class="fw-bold text-center mb-4">Fact Check Results</h2>
+
+    <!-- Search -->
+    <form method="POST" class="text-center mb-4">
+      <div class="input-group w-75 mx-auto">
+        <select name="mode" class="form-select w-auto">
+          <option value="keyword" {% if mode == 'keyword' %}selected{% endif %}>
+            Keyword
+          </option>
+          <option value="url" {% if mode == 'url' %}selected{% endif %}>URL</option>
+          <option value="headlines" {% if mode == 'headlines' %}selected{% endif %}>
+            Headlines
+          </option>
+        </select>
+        <input
+          type="text"
+          name="text"
+          class="form-control"
+          placeholder="Enter keyword, URL, or headlines"
+          value="{{ query }}"
+        />
+        <button type="submit" class="btn btn-dark fw-bold">Check</button>
+      </div>
+    </form>
+
+    <!-- Results -->
+    {% if result %}
+    <div class="row g-4">
+      {% for r in result %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card news-card h-100">
+          <img
+            src="{{ r.image }}"
+            class="card-img-top"
+            alt="News Image"
+            onerror="this.src='/static/images/news_placeholder.jpg';"
+          />
+          <div class="card-body">
+            <h5 class="card-title">{{ r.title }}</h5>
+            <p class="text-muted small mb-1">{{ r.source }}</p>
+
+            <span
+              class="badge badge-status 
+              {% if r.status == 'REAL' %}bg-success
+              {% elif r.status == 'FAKE' %}bg-danger
+              {% else %}bg-warning text-dark{% endif %}"
+              >{{ r.status }}</span
+            >
+            <span class="ms-2 small">{{ r.confidence }}%</span>
+
+            {% set width_val = r.confidence | float %}
+            {% set width_num = width_val | round(0) %}
+            <div class="confidence-bar mt-2 mb-2">
+              <div
+                class="confidence-fill
+                  {% if r.status == 'REAL' %}bg-success
+                  {% elif r.status == 'FAKE' %}bg-danger
+                  {% else %}bg-warning{% endif %}"
+                data-width="{{ width_num }}"
+                title="Confidence: {{ width_num }}%"
+              ></div>
+            </div>
+
+            <p class="small mb-2">{{ r.description }}</p>
+            <p class="timestamp">
+              🕒 Checked on {{ now().strftime('%d %b %Y, %I:%M %p') }}
+            </p>
+            <a
+              href="{{ r.url }}"
+              target="_blank"
+              class="btn btn-outline-dark btn-sm"
+              >Read Full Article</a
+            >
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+        {% for i in range(1, (total // per_page) + 2) %}
+        <li class="page-item {% if i == page %}active{% endif %}">
+          <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+    {% else %}
+    <p class="text-center text-muted mt-5">
+      No results yet. Try searching for a keyword or URL.
+    </p>
+    {% endif %}
+  </div>
+
+  <!-- ✅ FOOTER -->
+  <footer>
+    <h4>Developed by Team 08</h4>
+    <div>GURUKRISHNA • DISHAN • PRASAD • DHANYATH</div>
+    <p>| Made by Batch–08 | © 2025 All rights reserved.</p>
+  </footer>
+
+  <!-- ✅ JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".confidence-fill").forEach(function (el) {
+        const widthAttr = el.getAttribute("data-width");
+        const percent = parseInt(widthAttr, 10);
+        if (!isNaN(percent)) {
+          el.style.width = percent + "%";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
