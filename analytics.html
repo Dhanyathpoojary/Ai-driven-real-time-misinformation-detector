@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analytics — TruthCheck AI</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Leaflet.js & Heatmap -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --yellow-brand: #ffcc00;
+      --bg-light: #e5e7eb;
+      --content-light: #ffffff;
+      --text-main: #111827;
+      --card-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+
+      --bg-dark: #020617;
+      --content-dark: #020617;
+      --card-dark: #020617;
+      --border-dark: #1f2937;
+      --text-dark-main: #f9fafb;
+      --muted-dark: #9ca3af;
+    }
+
+    body {
+      background: var(--bg-light);
+      font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto;
+      color: var(--text-main);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    nav,
+    footer {
+      background: var(--yellow-brand);
+      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .logo-img {
+      height: 45px;
+      margin-right: 8px;
+    }
+
+    .content-wrapper {
+      margin-top: 25px;
+      margin-bottom: 25px;
+    }
+
+    .content {
+      min-height: 80vh;
+      padding: 25px;
+      background: var(--content-light);
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    .page-title {
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .page-subtitle {
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+
+    .card-analytics {
+      border-radius: 18px;
+      padding: 18px 20px 20px 20px;
+      margin-bottom: 22px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .card-analytics:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    .card-analytics-header h4 {
+      margin-bottom: 4px;
+    }
+
+    .card-analytics-header p {
+      margin-bottom: 0;
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+
+    #map {
+      height: 400px;
+      width: 100%;
+      border-radius: 14px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+
+    footer {
+      padding: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    footer p {
+      margin-bottom: 0;
+    }
+
+    /* Fade-in animation */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in {
+      opacity: 0;
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .fade-in.delay-1 {
+      animation-delay: 0.08s;
+    }
+
+    .fade-in.delay-2 {
+      animation-delay: 0.16s;
+    }
+
+    /* Dark mode */
+    .dark-mode {
+      background: var(--bg-dark);
+      color: var(--text-dark-main);
+    }
+
+    .dark-mode .content {
+      background: var(--content-dark);
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.9);
+    }
+
+    .dark-mode .card-analytics {
+      background: var(--card-dark);
+      border-color: var(--border-dark);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.85);
+    }
+
+    .dark-mode .card-analytics-header p,
+    .dark-mode .page-subtitle {
+      color: var(--muted-dark);
+    }
+
+    .dark-mode nav,
+    .dark-mode footer {
+      background: #020617;
+      color: var(--text-dark-main);
+      border-bottom: 1px solid #111827;
+    }
+
+    .dark-mode .nav-link {
+      color: var(--muted-dark) !important;
+    }
+
+    .dark-mode .nav-link.text-primary {
+      color: #38bdf8 !important;
+    }
+
+    .nav-link {
+      color: #111827 !important;
+      font-size: 0.95rem;
+    }
+
+    .nav-link.text-primary {
+      color: #1d4ed8 !important;
+    }
+
+    .theme-toggle-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .navbar {
+      padding-top: 0.6rem;
+      padding-bottom: 0.6rem;
+    }
+
+    .theme-toggle-wrapper {
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.8);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dark-mode .theme-toggle-wrapper {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .form-check-input {
+      cursor: pointer;
+    }
+
+    .dark-mode footer h4,
+    .dark-mode footer div,
+    .dark-mode footer p {
+      color: var(--text-dark-main);
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="/static/images/logo.png" class="logo-img" alt="">
+      <span class="fw-bold">TruthCheck AI</span>
+    </a>
+
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav me-3">
+        <li class="nav-item"><a class="nav-link fw-bold" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link fw-bold" href="/latest">Latest</a></li>
+        <li class="nav-item"><a class="nav-link fw-bold" href="/trending">Trending</a></li>
+        <li class="nav-item"><a class="nav-link fw-bold" href="/factchecks">Fact Checks</a></li>
+        <li class="nav-item"><a class="nav-link fw-bold text-primary" href="/analytics">Analytics</a></li>
+      </ul>
+
+      <!-- Theme Toggle -->
+      <div class="theme-toggle-wrapper">
+        <span class="theme-toggle-label">Light</span>
+        <div class="form-check form-check-reverse form-switch mb-0">
+          <input class="form-check-input" type="checkbox" id="themeToggle">
+        </div>
+        <span class="theme-toggle-label">Dark</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN WHITE/DARK AREA -->
+<div class="container content-wrapper">
+  <div class="content fade-in">
+
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
+      <div>
+        <h2 class="page-title mb-1">Analytics Dashboard</h2>
+        <p class="page-subtitle mb-0">
+          Live insights from your AI-driven fact checks — geo trends, source reliability and verdict distribution.
+        </p>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="card-analytics fade-in delay-1">
+      <div class="card-analytics-header">
+        <h4 class="fw-bold mb-1">🌍 Fake News Geo Heat Map</h4>
+        <p>Visualizes where fake or suspicious news is detected more frequently based on source countries.</p>
+      </div>
+      <div class="card-analytics-body">
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <!-- Source Activity Chart -->
+    <div class="card-analytics fade-in delay-2">
+      <div class="card-analytics-header mb-2">
+        <h4 class="fw-bold mb-1">📊 Source Activity (Real / Fake / Unsure)</h4>
+        <p>Compare how often each news source is labeled as real, fake, or unsure by the classifier.</p>
+      </div>
+      <div class="card-analytics-body">
+        {% if not source_activity %}
+          <p class="text-muted mb-0">No data yet. Start fact-checking to see source-wise analytics.</p>
+        {% else %}
+          <canvas id="sourceChart" height="120"></canvas>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <h4>Developed by Team 08</h4>
+  <div>GURUKRISHNA • DISHAN • PRASAD • DHANYATH</div>
+  <p>| Made by Batch-08 | ©2025 All rights reserved.</p>
+</footer>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Safe JSON parsing for Jinja variables
+  const HEAT_POINTS = JSON.parse('{{ (heat_points or []) | tojson | safe }}');
+  const SRC_ACTIVITY = JSON.parse('{{ (source_activity or {}) | tojson | safe }}');
+
+  // THEME TOGGLE (Light / Dark)
+  (function () {
+    const body = document.body;
+    const toggle = document.getElementById('themeToggle');
+    const STORAGE_KEY = 'truthcheck-theme';
+
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        body.classList.add('dark-mode');
+        localStorage.setItem(STORAGE_KEY, 'dark');
+      } else {
+        body.classList.remove('dark-mode');
+        localStorage.setItem(STORAGE_KEY, 'light');
+      }
+    }
+
+    // On load: set theme from localStorage or default to light
+    const savedTheme = localStorage.getItem(STORAGE_KEY) || 'light';
+    applyTheme(savedTheme);
+    if (savedTheme === 'dark') {
+      toggle.checked = true;
+    }
+
+    // On toggle change
+    toggle.addEventListener('change', function () {
+      applyTheme(this.checked ? 'dark' : 'light');
+    });
+  })();
+
+  // LEAFLET MAP + HEATMAP
+  const map = L.map('map').setView([20.5937, 78.9629], 3); // Center on India
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 6,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  if (HEAT_POINTS.length > 0) {
+    const heatLayer = L.heatLayer(
+      HEAT_POINTS.map(p => [p[0], p[1], p[2]]),
+      {
+        radius: 30,
+        blur: 22,
+        maxZoom: 4,
+        // Smooth professional gradient
+        gradient: {
+          0.2: '#4ade80',  // green
+          0.4: '#facc15',  // yellow
+          0.6: '#fb923c',  // orange
+          0.8: '#dc2626'   // red
+        }
+      }
+    );
+    heatLayer.addTo(map);
+  }
+
+  // SOURCE ACTIVITY CHART
+  if (Object.keys(SRC_ACTIVITY).length > 0) {
+    const labels = Object.keys(SRC_ACTIVITY);
+    const real = labels.map(x => SRC_ACTIVITY[x]["REAL"] || 0);
+    const fake = labels.map(x => SRC_ACTIVITY[x]["FAKE"] || 0);
+    const unsure = labels.map(x => SRC_ACTIVITY[x]["UNSURE"] || 0);
+
+    new Chart(document.getElementById("sourceChart"), {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Real",
+            data: real,
+            backgroundColor: "rgba(34, 197, 94, 0.8)"  // green
+          },
+          {
+            label: "Fake",
+            data: fake,
+            backgroundColor: "rgba(239, 68, 68, 0.85)" // red
+          },
+          {
+            label: "Unsure",
+            data: unsure,
+            backgroundColor: "rgba(234, 179, 8, 0.9)"  // amber
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "top",
+            labels: {
+              font: {
+                family: "Poppins"
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              autoSkip: false,
+              maxRotation: 75,
+              minRotation: 30,
+              font: {
+                family: "Poppins",
+                size: 11
+              }
+            },
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              font: {
+                family: "Poppins",
+                size: 11
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
